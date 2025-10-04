@@ -1,3 +1,6 @@
+![Build](https://github.com/saulhdzga/StrongResult/actions/workflows/dotnet.yml/badge.svg)
+[![NuGet Version](https://img.shields.io/nuget/v/StrongResult.svg)](https://www.nuget.org/packages/StrongResult)
+
 # StrongResult
 
 StrongResult is a C# library for representing operation results with explicit success, failure, error, and warning states. It provides both generic (`Result<T>`) and non-generic (`Result`) result types for clear, type-safe, and expressive error handling.
