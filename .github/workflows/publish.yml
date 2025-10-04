@@ -51,13 +51,13 @@ jobs:
         id: nuget_version
         run: |
           PACKAGE_ID="StrongResult"
-          VERSIONS=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/index.json" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          RESPONSE=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/index.json")
+          echo "NuGet API response: $RESPONSE"
+          VERSIONS=$(echo "$RESPONSE" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           LATEST_VERSION=$(echo "$VERSIONS" | tail -1)
           if [ -z "$LATEST_VERSION" ]; then
             LATEST_VERSION="0.1.0"
           fi
-          echo "nuget_versions=$VERSIONS" > nuget_versions.txt
-          echo "nuget_latest=$LATEST_VERSION" > nuget_latest.txt
           echo "::set-output name=nuget_versions::$VERSIONS"
           echo "::set-output name=nuget_latest::$LATEST_VERSION"
 
