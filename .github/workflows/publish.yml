@@ -36,26 +36,39 @@ jobs:
       - name: Copy README to project folder
         run: cp README.md StrongResult/README.md
 
+      - name: Get tag for current commit
+        id: git_tag
+        run: |
+          TAG=$(git tag --points-at HEAD | head -n 1)
+          if [ -z "$TAG" ]; then
+            echo "tag="
+          else
+            echo "tag=${TAG#v}"
+          fi
+          echo "TAG=${TAG}" # For debug
+
+      - name: Get latest NuGet version
+        id: nuget_version
+        if: steps.git_tag.outputs.tag == ''
+        run: |
+          PACKAGE_ID="StrongResult"
+          VERSION=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/index.json" | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | tail -1)
+          if [ -z "$VERSION" ]; then
+            VERSION="0.1.0"
+          fi
+          echo "nuget_version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Calculate next version
         id: version
         run: |
-          # Get latest tag (default to v0.1.0 if none)
-          TAG=$(git tag --sort=-v:refname | head -n 1)
-          # Remove 'v' prefix
-          VERSION=${TAG#v}
-          # Get last commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          # Parse version
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          # Bump version based on commit message
-          if [[ "$COMMIT_MSG" == *"[major]"* ]]; then
-            MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0
-          elif [[ "$COMMIT_MSG" == *"[minor]"* ]]; then
-            MINOR=$((MINOR+1)); PATCH=0
+          if [ "${{ steps.git_tag.outputs.tag }}" != "" ]; then
+            NEW_VERSION="${{ steps.git_tag.outputs.tag }}"
           else
+            VERSION="${{ steps.nuget_version.outputs.nuget_version }}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
             PATCH=$((PATCH+1))
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           fi
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "Next version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
