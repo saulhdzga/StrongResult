@@ -41,30 +41,34 @@ jobs:
         run: |
           TAG=$(git tag --points-at HEAD | head -n 1)
           if [ -z "$TAG" ]; then
-            echo "tag="
+            echo "tag=" >> $GITHUB_OUTPUT
           else
-            echo "tag=${TAG#v}"
+            echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
           fi
           echo "TAG=${TAG}" # For debug
 
       - name: Get latest NuGet version
         id: nuget_version
-        if: steps.git_tag.outputs.tag == ''
         run: |
           PACKAGE_ID="StrongResult"
-          VERSION=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/index.json" | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | tail -1)
-          if [ -z "$VERSION" ]; then
-            VERSION="0.1.0"
+          VERSIONS=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/index.json" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          LATEST_VERSION=$(echo "$VERSIONS" | tail -1)
+          if [ -z "$LATEST_VERSION" ]; then
+            LATEST_VERSION="0.1.0"
           fi
-          echo "nuget_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "nuget_versions=$VERSIONS" >> $GITHUB_OUTPUT
+          echo "nuget_latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
 
       - name: Calculate next version
         id: version
         run: |
-          if [ "${{ steps.git_tag.outputs.tag }}" != "" ]; then
-            NEW_VERSION="${{ steps.git_tag.outputs.tag }}"
+          TAG="${{ steps.git_tag.outputs.tag }}"
+          NUGET_VERSIONS="${{ steps.nuget_version.outputs.nuget_versions }}"
+          NUGET_LATEST="${{ steps.nuget_version.outputs.nuget_latest }}"
+          if [ "$TAG" != "" ] && ! echo "$NUGET_VERSIONS" | grep -qx "$TAG"; then
+            NEW_VERSION="$TAG"
           else
-            VERSION="${{ steps.nuget_version.outputs.nuget_version }}"
+            VERSION="$NUGET_LATEST"
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
             PATCH=$((PATCH+1))
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
