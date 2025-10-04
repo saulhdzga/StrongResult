@@ -1,10 +1,5 @@
 using StrongResult.Common;
-using StrongResult.NonGeneric;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace StrongResult.Generic;
 
@@ -254,8 +249,6 @@ public static class ResultTExtensions
     {
         return $"Result {{ IsSuccess = {result.IsSuccess}, IsFailure = {result.IsFailure}, Kind = {result.Kind}, Value = {result.Value}, Error = {result.Error?.Message ?? "None"}, Warnings = [{string.Join(", ", result.Warnings.Select(w => w.Message))}] }}";
     }
-
-    // Replace the TryGetValue method with a version that does not use 'Value' property on non-generic Result
 
     /// <summary>
     /// Attempts to get the value if the result is successful.

@@ -1,6 +1,5 @@
 using StrongResult.Common;
 using StrongResult.Generic;
-using Xunit;
 
 namespace StrongResult.Test;
 
