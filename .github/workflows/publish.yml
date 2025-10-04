@@ -45,7 +45,7 @@ jobs:
           else
             echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
           fi
-          echo "TAG=${TAG}" # For debug
+          echo "TAG=${TAG}"
 
       - name: Calculate version
         id: version
