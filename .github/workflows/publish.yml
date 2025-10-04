@@ -19,10 +19,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore StrongResult/StrongResult.csproj
+        run: dotnet restore StrongResult/StrongResult.csproj StrongResult.Test/StrongResult.Test.csproj
 
       - name: Build
-        run: dotnet build StrongResult/StrongResult.csproj --configuration Release --no-restore
+        run: dotnet build StrongResult/StrongResult.csproj StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-restore
 
       - name: Test
         run: dotnet test StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-build --verbosity normal
