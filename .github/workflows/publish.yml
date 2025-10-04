@@ -36,8 +36,31 @@ jobs:
       - name: Copy README to project folder
         run: cp README.md StrongResult/README.md
 
+      - name: Calculate next version
+        id: version
+        run: |
+          # Get latest tag (default to v0.1.0 if none)
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+          # Remove 'v' prefix
+          VERSION=${TAG#v}
+          # Get last commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          # Parse version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          # Bump version based on commit message
+          if [[ "$COMMIT_MSG" == *"[major]"* ]]; then
+            MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0
+          elif [[ "$COMMIT_MSG" == *"[minor]"* ]]; then
+            MINOR=$((MINOR+1)); PATCH=0
+          else
+            PATCH=$((PATCH+1))
+          fi
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "Next version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
       - name: Pack
-        run: dotnet pack StrongResult/StrongResult.csproj --configuration Release --no-build --output ./nupkg
+        run: dotnet pack StrongResult/StrongResult.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }}
 
       - name: Publish to NuGet
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
