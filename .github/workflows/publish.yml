@@ -33,6 +33,9 @@ jobs:
       - name: Test
         run: dotnet test StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-build --verbosity normal
 
+      - name: Copy README to project folder
+        run: cp README.md StrongResult/README.md
+
       - name: Pack
         run: dotnet pack StrongResult/StrongResult.csproj --configuration Release --no-build --output ./nupkg
 
