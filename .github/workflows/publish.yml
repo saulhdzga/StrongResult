@@ -24,8 +24,11 @@ jobs:
       - name: Restore StrongResult.Test
         run: dotnet restore StrongResult.Test/StrongResult.Test.csproj
 
-      - name: Build
-        run: dotnet build StrongResult/StrongResult.csproj StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-restore
+      - name: Build StrongResult
+        run: dotnet build StrongResult/StrongResult.csproj --configuration Release --no-restore
+
+      - name: Build StrongResult.Test
+        run: dotnet build StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-restore
 
       - name: Test
         run: dotnet test StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-build --verbosity normal
