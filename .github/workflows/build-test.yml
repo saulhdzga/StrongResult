@@ -1,0 +1,21 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore StrongResult/StrongResult.csproj
+      - run: dotnet restore StrongResult.Test/StrongResult.Test.csproj
+      - run: dotnet build StrongResult/StrongResult.csproj --configuration Release --no-restore
+      - run: dotnet build StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-restore
+      - run: dotnet test StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-build --verbosity normal

@@ -1,71 +1,25 @@
-name: Build and Publish NuGet Package
+name: Publish NuGet Package
 
 on:
   push:
-    branches:
-      - master
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
-      - name: Restore StrongResult
-        run: dotnet restore StrongResult/StrongResult.csproj
-
-      - name: Restore StrongResult.Test
-        run: dotnet restore StrongResult.Test/StrongResult.Test.csproj
-
-      - name: Build StrongResult
-        run: dotnet build StrongResult/StrongResult.csproj --configuration Release --no-restore
-
-      - name: Build StrongResult.Test
-        run: dotnet build StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test StrongResult.Test/StrongResult.Test.csproj --configuration Release --no-build --verbosity normal
-
-      - name: Copy README to project folder
-        run: cp README.md StrongResult/README.md
-
-      - name: Get tag for current commit
-        id: git_tag
-        run: |
-          TAG=$(git tag --points-at HEAD | head -n 1)
-          if [ -z "$TAG" ]; then
-            echo "tag=" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
-          fi
-          echo "TAG=${TAG}"
-
-      - name: Calculate version
-        id: version
-        run: |
-          TAG="${{ steps.git_tag.outputs.tag }}"
-          if [ "$TAG" != "" ]; then
-            NEW_VERSION="$TAG"
-          else
-            echo "No tag found on this commit. Skipping publish."
-            exit 0
-          fi
-          echo "Next version: $NEW_VERSION"
-          echo "::set-output name=version::$NEW_VERSION"
-
-      - name: Pack
-        if: steps.git_tag.outputs.tag != ''
-        run: dotnet pack StrongResult/StrongResult.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }}
-
-      - name: Publish to NuGet
-        if: steps.git_tag.outputs.tag != ''
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - run: dotnet restore StrongResult/StrongResult.csproj
+      - run: dotnet build StrongResult/StrongResult.csproj --configuration Release --no-restore
+      - run: cp README.md StrongResult/README.md
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - run: dotnet pack StrongResult/StrongResult.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=${{ steps.get_version.outputs.version }}
+      - run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
