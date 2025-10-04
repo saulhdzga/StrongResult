@@ -40,7 +40,7 @@ jobs:
         id: version
         run: |
           # Get latest tag (default to v0.1.0 if none)
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+          TAG=$(git tag --sort=-v:refname | head -n 1)
           # Remove 'v' prefix
           VERSION=${TAG#v}
           # Get last commit message
