@@ -84,4 +84,21 @@ public class ResultAdvancedTests
         result.ForEachWarning(w => called = true);
         Assert.False(called);
     }
+
+    [Fact]
+    public void Match_ShouldReturnOnSuccessValue_WhenSuccess()
+    {
+        var result = Result.Ok();
+        var output = result.Match(r => "success", e => "failure");
+        Assert.Equal("success", output);
+    }
+
+    [Fact]
+    public void Match_ShouldReturnOnFailureValue_WhenFailure()
+    {
+        var error = Error.Create("E", "fail");
+        var result = Result.Fail(error);
+        var output = result.Match(r => "success", e => "failure");
+        Assert.Equal("failure", output);
+    }
 }
