@@ -12,6 +12,7 @@ StrongResult is a C# library for representing operation results with explicit su
 - **Warnings & Errors**: Attach warnings and errors to results for detailed diagnostics.
 - **Immutability**: All result types are immutable and thread-safe.
 - **Fluent API**: Easily create, map, bind, and match results.
+- **Comprehensive Async Support**: Full async/await support with `MapAsync`, `BindAsync`, `MatchAsync`, and more. Works seamlessly with `Task` and `ValueTask`.
 
 ## Quick Start
 
@@ -89,6 +90,28 @@ var mapped = result.Map(s => s.Length);
 var bound = result.Bind(s => Result<int>.Ok(s.Length));
 ```
 
+#### Async Operations
+
+```
+// Async mapping
+var mapped = await result.MapAsync(async s => await TransformAsync(s));
+
+// Async binding
+var bound = await result.BindAsync(async s => await ValidateAsync(s));
+
+// Async actions
+await result
+    .OnSuccessAsync(async v => await SaveAsync(v))
+    .OnFailureAsync(async e => await LogAsync(e));
+
+// Working with async results
+var output = await GetResultAsync()
+    .MapAsync(x => x * 2)
+    .BindAsync(async x => await ProcessAsync(x));
+```
+
+See [ASYNC_PATTERNS.md](ASYNC_PATTERNS.md) for comprehensive async examples.
+
 ### Fluent Result Actions
 
 #### OnSuccess
@@ -129,8 +152,13 @@ result.ForEachWarning(warning => Console.WriteLine($"Warning: {warning.Code} - {
 ## API Reference
 
 - `Result` and `Result<T>`: Main result types.
-- `Error` and `Warning`: Attach error and warning information.
-- Extension methods: `Map`, `Bind`, `Match`, `OnSuccess`, `OnFailure`,`OnWarnings`, `ForEachWarning` etc.
+- `Error` and `Warning`: Attach error and warning information with input validation.
+- Extension methods: `Map`, `Bind`, `Match`, `OnSuccess`, `OnFailure`, `OnWarnings`, `ForEachWarning`, etc.
+- Async extension methods: `MapAsync`, `BindAsync`, `MatchAsync`, `OnSuccessAsync`, `OnFailureAsync`, `OnWarningsAsync`, `ForEachWarningAsync` with support for `Task` and `ValueTask`.
+
+## Documentation
+
+- [Async Patterns Guide](ASYNC_PATTERNS.md) - Comprehensive async/await examples and best practices
 
 ## Testing
 

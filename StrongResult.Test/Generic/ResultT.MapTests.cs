@@ -56,4 +56,61 @@ public class ResultTMapTests
         var result = Result<string>.Ok("abc");
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.MapAsync<string, int>(null!).AsTask());
     }
+
+    [Fact]
+    public async Task MapAsync_ValueTaskSource_WithSyncFunc_ShouldMapValue()
+    {
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Ok(5));
+        var mapped = await resultTask.MapAsync(x => x * 2);
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(10, mapped.Value);
+    }
+
+    [Fact]
+    public async Task MapAsync_ValueTaskSource_WithAsyncFunc_ShouldMapValue()
+    {
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Ok(5));
+        var mapped = await resultTask.MapAsync(async x => await ValueTask.FromResult(x * 2));
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(10, mapped.Value);
+    }
+
+    [Fact]
+    public async Task MapAsync_TaskSource_WithSyncFunc_ShouldMapValue()
+    {
+        var resultTask = Task.FromResult(Result<int>.Ok(5));
+        var mapped = await resultTask.MapAsync(x => x * 2);
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(10, mapped.Value);
+    }
+
+    [Fact]
+    public async Task MapAsync_TaskSource_WithAsyncFunc_ShouldMapValue()
+    {
+        var resultTask = Task.FromResult(Result<int>.Ok(5));
+        var mapped = await resultTask.MapAsync(async x => await ValueTask.FromResult(x * 2));
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(10, mapped.Value);
+    }
+
+    [Fact]
+    public async Task MapAsync_ValueTaskSourceFailure_ShouldPreserveError()
+    {
+        var error = Error.Create("E", "error");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Fail(error));
+        var mapped = await resultTask.MapAsync(x => x * 2);
+        Assert.False(mapped.IsSuccess);
+        Assert.Equal(error, mapped.Error);
+    }
+
+    [Fact]
+    public async Task MapAsync_WithWarnings_ShouldPreserveWarnings()
+    {
+        var warning = Warning.Create("W", "warning");
+        var resultTask = Task.FromResult(Result<int>.PartialSuccess(5, warning));
+        var mapped = await resultTask.MapAsync(x => x * 2);
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(10, mapped.Value);
+        Assert.Single(mapped.Warnings);
+    }
 }

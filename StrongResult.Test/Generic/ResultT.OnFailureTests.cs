@@ -56,4 +56,55 @@ public class ResultTOnFailureTests
         var result = Result<string>.Fail(Error.Create("E", "fail"));
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.OnFailureAsync(null!).AsTask());
     }
+
+    [Fact]
+    public async Task OnFailureAsync_ValueTaskSource_WithSyncAction_ShouldExecuteOnFailure()
+    {
+        var executed = false;
+        var error = Error.Create("E", "error");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Fail(error));
+        var result = await resultTask.OnFailureAsync(e => executed = true);
+        Assert.True(executed);
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnFailureAsync_ValueTaskSource_WithAsyncAction_ShouldExecuteOnFailure()
+    {
+        var executed = false;
+        var error = Error.Create("E", "error");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Fail(error));
+        var result = await resultTask.OnFailureAsync(async e =>
+        {
+            await Task.Yield();
+            executed = true;
+        });
+        Assert.True(executed);
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnFailureAsync_TaskSource_WithSyncAction_ShouldNotExecuteOnSuccess()
+    {
+        var executed = false;
+        var resultTask = Task.FromResult(Result<int>.Ok(5));
+        var result = await resultTask.OnFailureAsync(e => executed = true);
+        Assert.False(executed);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnFailureAsync_TaskSource_WithAsyncAction_ShouldCaptureError()
+    {
+        IError? capturedError = null;
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result<int>.Fail(error));
+        var result = await resultTask.OnFailureAsync(async e =>
+        {
+            await Task.Yield();
+            capturedError = e;
+        });
+        Assert.False(result.IsSuccess);
+        Assert.Equal(error, capturedError);
+    }
 }

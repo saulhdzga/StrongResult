@@ -51,4 +51,64 @@ public static partial class ResultTExtensions
             ? Result<U>.PartialSuccess(mapped, result.Warnings.ToArray())
             : Result<U>.Ok(mapped);
     }
+
+    /// <summary>
+    /// Maps an asynchronous result to a new value using the specified synchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the mapped value.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The mapping function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async ValueTask<Result<U>> MapAsync<T, U>(this ValueTask<Result<T>> resultTask, Func<T, U> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Map(func);
+    }
+
+    /// <summary>
+    /// Maps an asynchronous result to a new value using the specified asynchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the mapped value.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async ValueTask<Result<U>> MapAsync<T, U>(this ValueTask<Result<T>> resultTask, Func<T, ValueTask<U>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.MapAsync(func).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Maps an asynchronous result (Task) to a new value using the specified synchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the mapped value.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The mapping function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async Task<Result<U>> MapAsync<T, U>(this Task<Result<T>> resultTask, Func<T, U> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Map(func);
+    }
+
+    /// <summary>
+    /// Maps an asynchronous result (Task) to a new value using the specified asynchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the mapped value.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async Task<Result<U>> MapAsync<T, U>(this Task<Result<T>> resultTask, Func<T, ValueTask<U>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.MapAsync(func).ConfigureAwait(false);
+    }
 }

@@ -116,4 +116,70 @@ public class ResultTOnWarningsTests
         var result = Result<string>.PartialSuccess("abc", Warning.Create("W", "warn"));
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.ForEachWarningAsync(null!).AsTask());
     }
+
+    [Fact]
+    public async Task OnWarningsAsync_ValueTaskSource_WithSyncAction_ShouldExecuteOnWarnings()
+    {
+        var executed = false;
+        var warning = Warning.Create("W", "warning");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.PartialSuccess(5, warning));
+        var result = await resultTask.OnWarningsAsync(w => executed = true);
+        Assert.True(executed);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnWarningsAsync_ValueTaskSource_WithAsyncAction_ShouldExecuteOnWarnings()
+    {
+        var executed = false;
+        var warning = Warning.Create("W", "warning");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.PartialSuccess(5, warning));
+        var result = await resultTask.OnWarningsAsync(async w =>
+        {
+            await Task.Yield();
+            executed = true;
+        });
+        Assert.True(executed);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ForEachWarningAsync_ValueTaskSource_WithSyncAction_ShouldIterateWarnings()
+    {
+        var count = 0;
+        var warning1 = Warning.Create("W1", "warning1");
+        var warning2 = Warning.Create("W2", "warning2");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.PartialSuccess(5, warning1, warning2));
+        var result = await resultTask.ForEachWarningAsync(w => count++);
+        Assert.Equal(2, count);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ForEachWarningAsync_ValueTaskSource_WithAsyncAction_ShouldIterateWarnings()
+    {
+        var count = 0;
+        var warning1 = Warning.Create("W1", "warning1");
+        var warning2 = Warning.Create("W2", "warning2");
+        var resultTask = new ValueTask<Result<int>>(Result<int>.PartialSuccess(5, warning1, warning2));
+        var result = await resultTask.ForEachWarningAsync(async w =>
+        {
+            await Task.Yield();
+            count++;
+        });
+        Assert.Equal(2, count);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ForEachWarningAsync_TaskSource_WithSyncAction_ShouldIterateWarnings()
+    {
+        var count = 0;
+        var warning1 = Warning.Create("W1", "warning1");
+        var warning2 = Warning.Create("W2", "warning2");
+        var resultTask = Task.FromResult(Result<int>.PartialSuccess(5, warning1, warning2));
+        var result = await resultTask.ForEachWarningAsync(w => count++);
+        Assert.Equal(2, count);
+        Assert.True(result.IsSuccess);
+    }
 }

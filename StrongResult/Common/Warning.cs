@@ -32,8 +32,11 @@ public record Warning : IWarning
     /// </summary>
     /// <param name="code">The warning code.</param>
     /// <param name="message">The warning message.</param>
+    /// <exception cref="ArgumentException">Thrown when code or message is null or whitespace.</exception>
     private Warning(string code, string message)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(code, nameof(code));
+        ArgumentException.ThrowIfNullOrWhiteSpace(message, nameof(message));
         Code = code;
         Message = message;
     }
@@ -44,6 +47,7 @@ public record Warning : IWarning
     /// <param name="code">The warning code.</param>
     /// <param name="message">The warning message.</param>
     /// <returns>A new <see cref="Warning"/> instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when code or message is null or whitespace.</exception>
     public static Warning Create(string code, string message)
         => new(code, message);
 }

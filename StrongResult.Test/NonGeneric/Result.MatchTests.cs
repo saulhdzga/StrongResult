@@ -66,4 +66,42 @@ public class ResultMatchTests
         var result = Result.Ok();
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.MatchAsync(async r => await Task.FromResult("success"), null!).AsTask());
     }
+
+    [Fact]
+    public async Task MatchAsync_ValueTaskSource_WithSyncFuncs_ShouldMatchSuccess()
+    {
+        var resultTask = new ValueTask<Result>(Result.Ok());
+        var output = await resultTask.MatchAsync(r => "success", e => "failure");
+        Assert.Equal("success", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_ValueTaskSource_WithAsyncFuncs_ShouldMatchSuccess()
+    {
+        var resultTask = new ValueTask<Result>(Result.Ok());
+        var output = await resultTask.MatchAsync(
+            async r => await ValueTask.FromResult("success"),
+            async e => await ValueTask.FromResult("failure"));
+        Assert.Equal("success", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskSource_WithSyncFuncs_ShouldMatchFailure()
+    {
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result.Fail(error));
+        var output = await resultTask.MatchAsync(r => "success", e => "failure");
+        Assert.Equal("failure", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskSource_WithAsyncFuncs_ShouldMatchFailure()
+    {
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result.Fail(error));
+        var output = await resultTask.MatchAsync(
+            async r => await ValueTask.FromResult("success"),
+            async e => await ValueTask.FromResult("failure"));
+        Assert.Equal("failure", output);
+    }
 }

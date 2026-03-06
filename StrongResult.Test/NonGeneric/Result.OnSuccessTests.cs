@@ -56,4 +56,53 @@ public class ResultOnSuccessTests
         var result = Result.Ok();
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.OnSuccessAsync(null!).AsTask());
     }
+
+    [Fact]
+    public async Task OnSuccessAsync_ValueTaskSource_WithSyncAction_ShouldExecuteOnSuccess()
+    {
+        var executed = false;
+        var resultTask = new ValueTask<Result>(Result.Ok());
+        var result = await resultTask.OnSuccessAsync(r => executed = true);
+        Assert.True(executed);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnSuccessAsync_ValueTaskSource_WithAsyncAction_ShouldExecuteOnSuccess()
+    {
+        var executed = false;
+        var resultTask = new ValueTask<Result>(Result.Ok());
+        var result = await resultTask.OnSuccessAsync(async r =>
+        {
+            await Task.Yield();
+            executed = true;
+        });
+        Assert.True(executed);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnSuccessAsync_TaskSource_WithSyncAction_ShouldNotExecuteOnFailure()
+    {
+        var executed = false;
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result.Fail(error));
+        var result = await resultTask.OnSuccessAsync(r => executed = true);
+        Assert.False(executed);
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task OnSuccessAsync_TaskSource_WithAsyncAction_ShouldExecuteAndChain()
+    {
+        var executed = false;
+        var resultTask = Task.FromResult(Result.Ok());
+        var result = await resultTask.OnSuccessAsync(async r =>
+        {
+            await Task.Yield();
+            executed = true;
+        });
+        Assert.True(executed);
+        Assert.True(result.IsSuccess);
+    }
 }

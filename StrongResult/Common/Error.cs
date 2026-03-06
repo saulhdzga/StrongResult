@@ -32,8 +32,11 @@ public record Error : IError
     /// </summary>
     /// <param name="code">The error code.</param>
     /// <param name="message">The error message.</param>
+    /// <exception cref="ArgumentException">Thrown when code or message is null or whitespace.</exception>
     private Error(string code, string message)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(code, nameof(code));
+        ArgumentException.ThrowIfNullOrWhiteSpace(message, nameof(message));
         Code = code;
         Message = message;
     }
@@ -44,6 +47,7 @@ public record Error : IError
     /// <param name="code">The error code.</param>
     /// <param name="message">The error message.</param>
     /// <returns>A new <see cref="Error"/> instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when code or message is null or whitespace.</exception>
     public static Error Create(string code, string message)
         => new(code, message);
 
@@ -52,6 +56,10 @@ public record Error : IError
     /// </summary>
     /// <param name="ex">The exception to convert.</param>
     /// <returns>A new <see cref="Error"/> instance representing the exception.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when ex is null.</exception>
     public static Error FromException(Exception ex)
-        => new(ex.GetType().Name, ex.Message);
+    {
+        ArgumentNullException.ThrowIfNull(ex, nameof(ex));
+        return new(ex.GetType().Name, ex.Message);
+    }
 }

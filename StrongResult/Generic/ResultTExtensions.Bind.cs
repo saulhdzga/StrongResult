@@ -66,4 +66,64 @@ public static partial class ResultTExtensions
             ? Result<U>.PartialSuccess(next.Value!, [.. combinedWarnings])
             : Result<U>.Ok(next.Value!);
     }
+
+    /// <summary>
+    /// Binds an asynchronous result to a new result using the specified synchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the value in the new result.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The binding function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async ValueTask<Result<U>> BindAsync<T, U>(this ValueTask<Result<T>> resultTask, Func<T, Result<U>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Bind(func);
+    }
+
+    /// <summary>
+    /// Binds an asynchronous result to a new result using the specified asynchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the value in the new result.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The asynchronous binding function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async ValueTask<Result<U>> BindAsync<T, U>(this ValueTask<Result<T>> resultTask, Func<T, ValueTask<Result<U>>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.BindAsync(func).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Binds an asynchronous result (Task) to a new result using the specified synchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the value in the new result.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The binding function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async Task<Result<U>> BindAsync<T, U>(this Task<Result<T>> resultTask, Func<T, Result<U>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Bind(func);
+    }
+
+    /// <summary>
+    /// Binds an asynchronous result (Task) to a new result using the specified asynchronous function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source result.</typeparam>
+    /// <typeparam name="U">The type of the value in the new result.</typeparam>
+    /// <param name="resultTask">The asynchronous source result.</param>
+    /// <param name="func">The asynchronous binding function.</param>
+    /// <returns>A task representing the asynchronous operation, with a new <see cref="Result{U}"/> as the result.</returns>
+    public static async Task<Result<U>> BindAsync<T, U>(this Task<Result<T>> resultTask, Func<T, ValueTask<Result<U>>> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.BindAsync(func).ConfigureAwait(false);
+    }
 }

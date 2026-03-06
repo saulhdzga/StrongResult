@@ -54,4 +54,42 @@ public class ResultTMatchTests
         var result = Result<string>.Ok("abc");
         await Assert.ThrowsAsync<ArgumentNullException>(() => result.MatchAsync(async s => await Task.FromResult(s.Length), null!).AsTask());
     }
+
+    [Fact]
+    public async Task MatchAsync_ValueTaskSource_WithSyncFuncs_ShouldMatchSuccess()
+    {
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Ok(5));
+        var output = await resultTask.MatchAsync(x => x.ToString(), e => "error");
+        Assert.Equal("5", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_ValueTaskSource_WithAsyncFuncs_ShouldMatchSuccess()
+    {
+        var resultTask = new ValueTask<Result<int>>(Result<int>.Ok(5));
+        var output = await resultTask.MatchAsync(
+            async x => await ValueTask.FromResult(x.ToString()),
+            async e => await ValueTask.FromResult("error"));
+        Assert.Equal("5", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskSource_WithSyncFuncs_ShouldMatchFailure()
+    {
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result<int>.Fail(error));
+        var output = await resultTask.MatchAsync(x => x.ToString(), e => "error");
+        Assert.Equal("error", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskSource_WithAsyncFuncs_ShouldMatchFailure()
+    {
+        var error = Error.Create("E", "error");
+        var resultTask = Task.FromResult(Result<int>.Fail(error));
+        var output = await resultTask.MatchAsync(
+            async x => await ValueTask.FromResult(x.ToString()),
+            async e => await ValueTask.FromResult("error"));
+        Assert.Equal("error", output);
+    }
 }
