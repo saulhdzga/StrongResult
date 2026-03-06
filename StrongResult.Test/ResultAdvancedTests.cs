@@ -10,7 +10,7 @@ public class ResultAdvancedTests
     {
         var result = Result.Ok();
         bool called = false;
-        result.OnSuccess(() => called = true);
+        result.OnSuccess(_ => called = true);
         Assert.True(called);
     }
 
@@ -20,7 +20,7 @@ public class ResultAdvancedTests
         var error = Error.Create("E", "fail");
         var result = Result.Fail(error);
         bool called = false;
-        result.OnSuccess(() => called = true);
+        result.OnSuccess(_ => called = true);
         Assert.False(called);
     }
 

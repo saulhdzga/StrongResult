@@ -13,9 +13,9 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The action to execute on success.</param>
     /// <returns>The current <see cref="Result"/> instance.</returns>
-    public static Result OnSuccess(this Result result, Action action)
+    public static Result OnSuccess(this Result result, Action<Result> action)
     {
-        if (result.IsSuccess) action();
+        if (result.IsSuccess) action(result);
         return result;
     }
 
@@ -25,9 +25,9 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The asynchronous action to execute on success.</param>
     /// <returns>A task representing the asynchronous operation, with the current <see cref="Result"/> instance as the result.</returns>
-    public static async Task<Result> OnSuccessAsync(this Result result, Func<Task> action)
+    public static async Task<Result> OnSuccessAsync(this Result result, Func<Result, Task> action)
     {
-        if (result.IsSuccess) await action();
+        if (result.IsSuccess) await action(result);
         return result;
     }
 
@@ -111,9 +111,9 @@ public static class ResultExtensions
     /// <param name="onSuccess">The function to execute if the result is successful.</param>
     /// <param name="OnFailureure">The function to execute if the result is a failure.</param>
     /// <returns>The result of the executed function.</returns>
-    public static T Match<T>(this Result result, Func<T> onSuccess, Func<IError, T> OnFailureure)
+    public static T Match<T>(this Result result, Func<Result, T> onSuccess, Func<IError, T> OnFailureure)
     {
-        return result.IsSuccess ? onSuccess() : OnFailureure(result.Error!);
+        return result.IsSuccess ? onSuccess(result) : OnFailureure(result.Error!);
     }
 
     /// <summary>
@@ -124,9 +124,9 @@ public static class ResultExtensions
     /// <param name="onSuccess">The asynchronous function to execute if the result is successful.</param>
     /// <param name="OnFailureure">The asynchronous function to execute if the result is a failure.</param>
     /// <returns>A task representing the asynchronous operation, with the result of the executed function as the result.</returns>
-    public static async Task<T> MatchAsync<T>(this Result result, Func<Task<T>> onSuccess, Func<IError, Task<T>> OnFailureure)
+    public static async Task<T> MatchAsync<T>(this Result result, Func<Result, Task<T>> onSuccess, Func<IError, Task<T>> OnFailureure)
     {
-        return result.IsSuccess ? await onSuccess() : await OnFailureure(result.Error!);
+        return result.IsSuccess ? await onSuccess(result) : await OnFailureure(result.Error!);
     }
 
     /// <summary>

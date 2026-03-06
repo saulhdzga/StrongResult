@@ -59,7 +59,7 @@ public class ResultTAsyncTests
     {
         var result = Result<string>.Ok("abc");
         bool called = false;
-        await result.OnSuccessAsync(async () => { called = true; await Task.Delay(1); });
+        await result.OnSuccessAsync(async _ => { called = true; await Task.Delay(1); });
         Assert.True(called);
     }
 
@@ -69,7 +69,7 @@ public class ResultTAsyncTests
         var error = Error.Create("E", "fail");
         var result = Result<string>.Fail(error);
         bool called = false;
-        await result.OnSuccessAsync(async () => { called = true; await Task.Delay(1); });
+        await result.OnSuccessAsync(async _ => { called = true; await Task.Delay(1); });
         Assert.False(called);
     }
 

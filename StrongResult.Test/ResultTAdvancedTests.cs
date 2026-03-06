@@ -108,7 +108,7 @@ public class ResultTAdvancedTests
     {
         var result = Result<string>.Ok("abc");
         bool called = false;
-        result.OnSuccess(() => called = true);
+        result.OnSuccess(_ => called = true);
         Assert.True(called);
     }
 
@@ -118,7 +118,7 @@ public class ResultTAdvancedTests
         var error = Error.Create("E", "fail");
         var result = Result<string>.Fail(error);
         bool called = false;
-        result.OnSuccess(() => called = true);
+        result.OnSuccess(_ => called = true);
         Assert.False(called);
     }
 
