@@ -15,6 +15,7 @@ public static class ResultExtensions
     /// <returns>The current <see cref="Result"/> instance.</returns>
     public static Result OnSuccess(this Result result, Action<Result> action)
     {
+        ArgumentNullException.ThrowIfNull(action);
         if (result.IsSuccess) action(result);
         return result;
     }
@@ -25,9 +26,10 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The asynchronous action to execute on success.</param>
     /// <returns>A task representing the asynchronous operation, with the current <see cref="Result"/> instance as the result.</returns>
-    public static async Task<Result> OnSuccessAsync(this Result result, Func<Result, Task> action)
+    public static async ValueTask<Result> OnSuccessAsync(this Result result, Func<Result, ValueTask> action)
     {
-        if (result.IsSuccess) await action(result);
+        ArgumentNullException.ThrowIfNull(action);
+        if (result.IsSuccess) await action(result).ConfigureAwait(false);
         return result;
     }
 
@@ -39,6 +41,7 @@ public static class ResultExtensions
     /// <returns>The current <see cref="Result"/> instance.</returns>
     public static Result OnFailure(this Result result, Action<IError> action)
     {
+        ArgumentNullException.ThrowIfNull(action);
         if (result.IsFailure) action(result.Error!);
         return result;
     }
@@ -49,9 +52,10 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The asynchronous action to execute on error.</param>
     /// <returns>A task representing the asynchronous operation, with the current <see cref="Result"/> instance as the result.</returns>
-    public static async Task<Result> OnFailureAsync(this Result result, Func<IError, Task> action)
+    public static async ValueTask<Result> OnFailureAsync(this Result result, Func<IError, ValueTask> action)
     {
-        if (result.IsFailure) await action(result.Error!);
+        ArgumentNullException.ThrowIfNull(action);
+        if (result.IsFailure) await action(result.Error!).ConfigureAwait(false);
         return result;
     }
 
@@ -63,6 +67,7 @@ public static class ResultExtensions
     /// <returns>The current <see cref="Result"/> instance.</returns>
     public static Result OnWarnings(this Result result, Action<IReadOnlyList<IWarning>> action)
     {
+        ArgumentNullException.ThrowIfNull(action);
         if (result.Warnings.Count != 0) action(result.Warnings);
         return result;
     }
@@ -73,9 +78,10 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The asynchronous action to execute on warnings.</param>
     /// <returns>A task representing the asynchronous operation, with the current <see cref="Result"/> instance as the result.</returns>
-    public static async Task<Result> OnWarningsAsync(this Result result, Func<IReadOnlyList<IWarning>, Task> action)
+    public static async ValueTask<Result> OnWarningsAsync(this Result result, Func<IReadOnlyList<IWarning>, ValueTask> action)
     {
-        if (result.Warnings.Count != 0) await action(result.Warnings);
+        ArgumentNullException.ThrowIfNull(action);
+        if (result.Warnings.Count != 0) await action(result.Warnings).ConfigureAwait(false);
         return result;
     }
 
@@ -87,6 +93,7 @@ public static class ResultExtensions
     /// <returns>The current <see cref="Result"/> instance.</returns>
     public static Result ForEachWarning(this Result result, Action<IWarning> action)
     {
+        ArgumentNullException.ThrowIfNull(action);
         foreach (var w in result.Warnings) action(w);
         return result;
     }
@@ -97,9 +104,10 @@ public static class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="action">The asynchronous action to execute for each warning.</param>
     /// <returns>A task representing the asynchronous operation, with the current <see cref="Result"/> instance as the result.</returns>
-    public static async Task<Result> ForEachWarningAsync(this Result result, Func<IWarning, Task> action)
+    public static async ValueTask<Result> ForEachWarningAsync(this Result result, Func<IWarning, ValueTask> action)
     {
-        foreach (var w in result.Warnings) await action(w);
+        ArgumentNullException.ThrowIfNull(action);
+        foreach (var w in result.Warnings) await action(w).ConfigureAwait(false);
         return result;
     }
 
@@ -113,6 +121,8 @@ public static class ResultExtensions
     /// <returns>The result of the executed function.</returns>
     public static T Match<T>(this Result result, Func<Result, T> onSuccess, Func<IError, T> OnFailureure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(OnFailureure);
         return result.IsSuccess ? onSuccess(result) : OnFailureure(result.Error!);
     }
 
@@ -124,9 +134,11 @@ public static class ResultExtensions
     /// <param name="onSuccess">The asynchronous function to execute if the result is successful.</param>
     /// <param name="OnFailureure">The asynchronous function to execute if the result is a failure.</param>
     /// <returns>A task representing the asynchronous operation, with the result of the executed function as the result.</returns>
-    public static async Task<T> MatchAsync<T>(this Result result, Func<Result, Task<T>> onSuccess, Func<IError, Task<T>> OnFailureure)
+    public static async ValueTask<T> MatchAsync<T>(this Result result, Func<Result, ValueTask<T>> onSuccess, Func<IError, ValueTask<T>> OnFailureure)
     {
-        return result.IsSuccess ? await onSuccess(result) : await OnFailureure(result.Error!);
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(OnFailureure);
+        return result.IsSuccess ? await onSuccess(result).ConfigureAwait(false) : await OnFailureure(result.Error!).ConfigureAwait(false);
     }
 
     /// <summary>

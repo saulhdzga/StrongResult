@@ -25,6 +25,13 @@ public class ResultAsyncTests
     }
 
     [Fact]
+    public async Task OnSuccessAsync_ShouldThrowArgumentNullException_WhenActionIsNull()
+    {
+        var result = Result.Ok();
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.OnSuccessAsync(null!).AsTask());
+    }
+
+    [Fact]
     public async Task OnFailureAsync_ShouldInvokeAction_WhenFailure()
     {
         var error = Error.Create("E", "fail");
@@ -41,6 +48,13 @@ public class ResultAsyncTests
         bool called = false;
         await result.OnFailureAsync(async e => { called = true; await Task.Delay(1); });
         Assert.False(called);
+    }
+
+    [Fact]
+    public async Task OnFailureAsync_ShouldThrowArgumentNullException_WhenActionIsNull()
+    {
+        var result = Result.Fail(Error.Create("E", "fail"));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.OnFailureAsync(null!).AsTask());
     }
 
     [Fact]
@@ -61,6 +75,13 @@ public class ResultAsyncTests
         bool called = false;
         await result.OnWarningsAsync(async w => { called = true; await Task.Delay(1); });
         Assert.False(called);
+    }
+
+    [Fact]
+    public async Task OnWarningsAsync_ShouldThrowArgumentNullException_WhenActionIsNull()
+    {
+        var result = Result.PartialSuccess(Warning.Create("W", "warn"));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.OnWarningsAsync(null!).AsTask());
     }
 
     [Fact]
@@ -86,6 +107,13 @@ public class ResultAsyncTests
     }
 
     [Fact]
+    public async Task ForEachWarningAsync_ShouldThrowArgumentNullException_WhenActionIsNull()
+    {
+        var result = Result.PartialSuccess(Warning.Create("W", "warn"));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.ForEachWarningAsync(null!).AsTask());
+    }
+
+    [Fact]
     public async Task MatchAsync_ShouldReturnOnSuccessValue_WhenSuccess()
     {
         var result = Result.Ok();
@@ -100,5 +128,19 @@ public class ResultAsyncTests
         var result = Result.Fail(error);
         var output = await result.MatchAsync(async r => await Task.FromResult("success"), async e => await Task.FromResult("failure"));
         Assert.Equal("failure", output);
+    }
+
+    [Fact]
+    public async Task MatchAsync_ShouldThrowArgumentNullException_WhenOnSuccessIsNull()
+    {
+        var result = Result.Ok();
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.MatchAsync<string>(null!, async e => await Task.FromResult("failure")).AsTask());
+    }
+
+    [Fact]
+    public async Task MatchAsync_ShouldThrowArgumentNullException_WhenOnFailureIsNull()
+    {
+        var result = Result.Ok();
+        await Assert.ThrowsAsync<ArgumentNullException>(() => result.MatchAsync(async r => await Task.FromResult("success"), null!).AsTask());
     }
 }
